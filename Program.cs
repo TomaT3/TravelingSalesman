@@ -34,7 +34,7 @@ namespace TravelingSalesman
             Console.WriteLine("Time: " + timeSpan);
             Console.WriteLine("MinLength: " + nextNearestFastestWay.distance);
 
-            Console.WriteLine($"Olaf's Path: {string.Join(",", minPath)}");
+            Console.WriteLine($"Olaf's Path: {string.Join(",", minPath.Reverse())}");
             Console.WriteLine($"Micha's Path: {string.Join(",", nextNearestFastestWay.travelList.Select(p => p.PositionNumber).ToList())}");
 
             Console.ReadKey();
