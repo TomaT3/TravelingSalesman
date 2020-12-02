@@ -65,22 +65,24 @@ namespace TravelingSalesman
                     var y2 = glasses[i].Item2;
                     var pathLength = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + currentLength;
 
-                    currentStack.Push(i);
-                    glasses[i].Item3 = true;
-                    if (currentStack.Count < GlassCount)
+
+                    if (pathLength < minLength)
                     {
-                        PathSearch(pathLength, i, glasses, currentStack, ref minLength, ref minPath);
-                    }
-                    else
-                    {
-                        if (pathLength < minLength)
+                        currentStack.Push(i);
+                        glasses[i].Item3 = true;
+                        if (currentStack.Count < GlassCount)
                         {
+                            PathSearch(pathLength, i, glasses, currentStack, ref minLength, ref minPath);
+                        }
+                        else
+                        {
+
                             minLength = pathLength;
                             minPath = currentStack.ToArray();
                         }
+                        glasses[i].Item3 = false;
+                        currentStack.Pop();
                     }
-                    glasses[i].Item3 = false;
-                    currentStack.Pop();
                 }
             }
         }
