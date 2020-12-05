@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
+using UnitsNet;
 
 namespace TravelingSalesman
 {
@@ -13,9 +14,15 @@ namespace TravelingSalesman
 
         static void Main(string[] args)
         {
+            var xAxisProperties = new KinematicProperties() { Acceleration = Acceleration.FromMillimetersPerSecondSquared(40), MaxSpeed = Speed.FromMillimetersPerSecond(50) };
+            var yAxisProperties = new KinematicProperties() { Acceleration = Acceleration.FromMillimetersPerSecondSquared(80), MaxSpeed = Speed.FromMillimetersPerSecond(80) };
+            var glasses = GetTwelveGlasses();
+            var positions = TransormToPositions(glasses);
+            var startPosition = positions[0];
+            positions.Remove(startPosition);
+
             var startTime = DateTime.Now;
             Console.WriteLine("Start: "+ startTime);
-            var glasses = GetTwelveGlasses();
             var (minLength, minPath) = PathSearch(glasses);
             var endTime = DateTime.Now;
             Console.WriteLine("End: " + endTime);
@@ -37,7 +44,40 @@ namespace TravelingSalesman
             Console.WriteLine($"Olaf's Path: {string.Join(",", minPath.Reverse())}");
             Console.WriteLine($"Micha's Path: {string.Join(",", nextNearestFastestWay.travelList.Select(p => p.PositionNumber).ToList())}");
 
+            Console.WriteLine(Environment.NewLine);
+            Console.WriteLine("+++++ Let's get to real world examples ++++++++");
+            Console.WriteLine("+++++++++++ RealWorldBruteForce +++++++++++++");
+            startTime = DateTime.Now;
+            (List<Position> pos, Duration timeTravelled) resultBruteForce = RealWorldBruteForce.GetFastestWayToGetDrunk(startPosition, positions, xAxisProperties, yAxisProperties);
+            endTime = DateTime.Now;
+            timeSpan = endTime - startTime;
+            Console.WriteLine("Time for calculation: " + timeSpan);
+            Console.WriteLine($"Plaf's Path: {string.Join(",", resultBruteForce.pos.Select(p => p.Number).ToList())}");
+            Console.WriteLine($"Time to travel: {resultBruteForce.timeTravelled.ToUnit(UnitsNet.Units.DurationUnit.Second)}");
+
+            Console.WriteLine("+++++++++++ RealWorlNextNearest +++++++++++++");
+            startTime = DateTime.Now;
+            (List<Position> pos, Duration timeTravelled) resultNextNearest = RealWorldNextNearest.GetFastestWayToGetDrunk(startPosition, positions, xAxisProperties, yAxisProperties);
+            endTime = DateTime.Now;
+            timeSpan = endTime - startTime;
+            Console.WriteLine("Time for calculation: " + timeSpan);
+            Console.WriteLine($"Micha's Path: {string.Join(",", resultNextNearest.pos.Select(p => p.Number).ToList())}");
+            Console.WriteLine($"Time to travel: {resultNextNearest.timeTravelled.ToUnit(UnitsNet.Units.DurationUnit.Second)}");
             Console.ReadKey();
+        }
+
+        private static List<Position> TransormToPositions((double XPos, double YPos, bool)[] glasses)
+        {
+            List<Position> positions = new List<Position>();
+            int pos = 0;
+            foreach (var glasPos in glasses)
+            {
+                Position item = new Position() with { Number = pos, X = Length.FromMillimeters(glasPos.XPos), Y = Length.FromMillimeters(glasPos.YPos) };
+                positions.Add(item);
+                pos++;
+            }
+
+            return positions;
         }
 
         private static (double, int[]) PathSearch((double, double, bool)[] glasses)
